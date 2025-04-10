@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 interface TweetFormat {
   id: number;
@@ -15,6 +15,9 @@ interface Category {
   name: string;
   formats: number[];
 }
+
+// Paystack payment link for donations
+const PAYSTACK_DONATE_LINK = "https://paystack.com/pay/8inb8j1um6";
 
 const tweetFormats: TweetFormat[] = [
   {
@@ -170,7 +173,7 @@ const categories: Category[] = [
 const Page: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
   const [copiedId, setCopiedId] = useState<number | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   const handleCopy = (text: string, id: number): void => {
     navigator.clipboard.writeText(text);
@@ -179,17 +182,17 @@ const Page: React.FC = () => {
   };
 
   const filteredFormats: TweetFormat[] = searchTerm
-    ? tweetFormats.filter(format =>
+    ? tweetFormats.filter((format) =>
         format.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         format.description.toLowerCase().includes(searchTerm.toLowerCase())
       )
     : tweetFormats;
 
   const getCategoryFormats = (categoryId: number): TweetFormat[] => {
-    const category = categories.find(cat => cat.id === categoryId);
+    const category = categories.find((cat) => cat.id === categoryId);
     if (!category) return [];
     return category.formats
-      .map(formatId => tweetFormats.find(format => format.id === formatId))
+      .map((formatId) => tweetFormats.find((format) => format.id === formatId))
       .filter((format): format is TweetFormat => Boolean(format));
   };
 
@@ -199,66 +202,93 @@ const Page: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <aside className="bg-white p-4 rounded-xl shadow-sm border">
-          <input
-            type="text"
-            placeholder="Search formats..."
-            className="w-full mb-4 p-2 border rounded"
-            value={searchTerm}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-          />
+      <div className="max-w-6xl mx-auto">
+        {/* Donate Button */}
+        <div className="flex justify-center mb-6">
+          <a
+            href={PAYSTACK_DONATE_LINK}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Donate
+          </a>
+        </div>
 
-          <h2 className="text-lg font-semibold mb-2">Categories</h2>
-          <ul className="space-y-1">
-            {categories.map(category => (
-              <li key={category.id}>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <aside className="bg-white p-4 rounded-xl shadow-sm border">
+            <input
+              type="text"
+              placeholder="Search formats..."
+              className="w-full mb-4 p-2 border rounded"
+              value={searchTerm}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setSearchTerm(e.target.value)
+              }
+            />
+
+            <h2 className="text-lg font-semibold mb-2">Categories</h2>
+            <ul className="space-y-1">
+              {categories.map((category) => (
+                <li key={category.id}>
+                  <button
+                    className={`w-full text-left px-2 py-1 rounded hover:bg-gray-100 ${
+                      selectedCategory === category.id
+                        ? "bg-blue-100 text-blue-700"
+                        : ""
+                    }`}
+                    onClick={() => setSelectedCategory(category.id)}
+                  >
+                    {category.name}
+                  </button>
+                </li>
+              ))}
+              <li>
                 <button
-                  className={`w-full text-left px-2 py-1 rounded hover:bg-gray-100 ${selectedCategory === category.id ? 'bg-blue-100 text-blue-700' : ''}`}
-                  onClick={() => setSelectedCategory(category.id)}
+                  className={`w-full text-left px-2 py-1 rounded hover:bg-gray-100 ${
+                    selectedCategory === null ? "bg-blue-100 text-blue-700" : ""
+                  }`}
+                  onClick={() => setSelectedCategory(null)}
                 >
-                  {category.name}
+                  All Formats
                 </button>
               </li>
-            ))}
-            <li>
-              <button
-                className={`w-full text-left px-2 py-1 rounded hover:bg-gray-100 ${selectedCategory === null ? 'bg-blue-100 text-blue-700' : ''}`}
-                onClick={() => setSelectedCategory(null)}
-              >
-                All Formats
-              </button>
-            </li>
-          </ul>
-        </aside>
+            </ul>
+          </aside>
 
-        <main className="lg:col-span-3 space-y-6">
-          {displayedFormats.length === 0 ? (
-            <div className="text-center text-gray-500">
-              No formats found.
-            </div>
-          ) : (
-            displayedFormats.map((format) => (
-              <div key={format.id} className="bg-white p-5 rounded-xl shadow-sm border">
-                <h3 className="text-xl font-semibold mb-1">{format.name}</h3>
-                <p className="text-sm text-gray-500 mb-3">{format.description}</p>
-                
-                <div className="bg-gray-50 p-4 rounded text-sm whitespace-pre-line mb-3">
-                  {format.example}
-                </div>
-
-                <div className="text-right">
-                  <button
-                    onClick={() => handleCopy(format.example, format.id)}
-                    className="text-sm bg-blue-600 text-white py-1.5 px-3 rounded hover:bg-blue-700 transition"
-                  >
-                    {copiedId === format.id ? 'Copied!' : 'Copy'}
-                  </button>
-                </div>
+          <main className="lg:col-span-3 space-y-6">
+            {displayedFormats.length === 0 ? (
+              <div className="text-center text-gray-500">
+                No formats found.
               </div>
-            ))
-          )}
-        </main>
+            ) : (
+              displayedFormats.map((format) => (
+                <div
+                  key={format.id}
+                  className="bg-white p-5 rounded-xl shadow-sm border"
+                >
+                  <h3 className="text-xl font-semibold mb-1">{format.name}</h3>
+                  <p className="text-sm text-gray-500 mb-3">
+                    {format.description}
+                  </p>
+
+                  <div className="bg-gray-50 p-4 rounded text-sm whitespace-pre-line mb-3">
+                    {format.example}
+                  </div>
+
+                  <div className="text-right">
+                    <button
+                      onClick={() => handleCopy(format.example, format.id)}
+                      className="text-sm bg-blue-600 text-white py-1.5 px-3 rounded hover:bg-blue-700 transition"
+                    >
+                      {copiedId === format.id ? "Copied!" : "Copy"}
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </main>
+        </div>
       </div>
     </div>
   );
